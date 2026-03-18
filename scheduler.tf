@@ -1,22 +1,18 @@
 ############################################
-# AWS EventBridge Scheduler - EC2 start/stop
-# Automatically uses instance ID from aws_instance.train
+# AWS EventBridge Scheduler - EC2 + Docker
+# Timezone: Europe/Zurich
 ############################################
 
 ############################################
-# Start EC2 - Tuesday 11:23 Europe/Zurich
+# START EC2 - Weekdays (08:30)
 ############################################
-resource "aws_scheduler_schedule" "start_ec2_tuesday" {
-  name                       = "start-ec2-tue-1030"
-  description                = "Start training instance Tuesday 11:45 CET"
-  state                      = "ENABLED"
+resource "aws_scheduler_schedule" "start_ec2_weekdays" {
+  name = "start-ec2-weekdays-0830"
 
-  schedule_expression        = "cron(59 11 ? * TUE *)"
+  schedule_expression          = "cron(30 8 ? * MON-FRI *)"
   schedule_expression_timezone = "Europe/Zurich"
 
-  flexible_time_window {
-    mode = "OFF"
-  }
+  flexible_time_window { mode = "OFF" }
 
   target {
     arn      = "arn:aws:scheduler:::aws-sdk:ec2:startInstances"
@@ -25,28 +21,41 @@ resource "aws_scheduler_schedule" "start_ec2_tuesday" {
     input = jsonencode({
       InstanceIds = [aws_instance.train.id]
     })
-
-    retry_policy {
-      maximum_event_age_in_seconds = 3600   # 1 hour
-      maximum_retry_attempts       = 3
-    }
   }
 }
 
 ############################################
-# Stop EC2 - Tuesday 11:30 Europe/Zurich
+# START EC2 - Saturday (08:00)
 ############################################
-resource "aws_scheduler_schedule" "stop_ec2_tuesday" {
-  name                       = "stop-ec2-tue-1035"
-  description                = "Stop training instance Tuesday 11:30 CET"
-  state                      = "ENABLED"
+resource "aws_scheduler_schedule" "start_ec2_sat" {
+  name = "start-ec2-sat-0800"
 
-  schedule_expression        = "cron(02 12 ? * TUE *)"
+  schedule_expression          = "cron(0 8 ? * SAT *)"
   schedule_expression_timezone = "Europe/Zurich"
 
-  flexible_time_window {
-    mode = "OFF"
+  flexible_time_window { mode = "OFF" }
+
+  target {
+    arn      = "arn:aws:scheduler:::aws-sdk:ec2:startInstances"
+    role_arn = "arn:aws:iam::412296094200:role/ec2-scheduler-role"
+
+    input = jsonencode({
+      InstanceIds = [aws_instance.train.id]
+    })
   }
+}
+
+
+############################################
+# STOP EC2 - Weekdays (19:00)
+############################################
+resource "aws_scheduler_schedule" "stop_ec2_weekdays" {
+  name = "stop-ec2-weekdays-1900"
+
+  schedule_expression          = "cron(0 19 ? * MON-FRI *)"
+  schedule_expression_timezone = "Europe/Zurich"
+
+  flexible_time_window { mode = "OFF" }
 
   target {
     arn      = "arn:aws:scheduler:::aws-sdk:ec2:stopInstances"
@@ -55,10 +64,26 @@ resource "aws_scheduler_schedule" "stop_ec2_tuesday" {
     input = jsonencode({
       InstanceIds = [aws_instance.train.id]
     })
+  }
+}
 
-    retry_policy {
-      maximum_event_age_in_seconds = 3600   # 1 hour
-      maximum_retry_attempts       = 3
-    }
+############################################
+# STOP EC2 - Saturday (10:00)
+############################################
+resource "aws_scheduler_schedule" "stop_ec2_sat" {
+  name = "stop-ec2-sat-1000"
+
+  schedule_expression          = "cron(0 10 ? * SAT *)"
+  schedule_expression_timezone = "Europe/Zurich"
+
+  flexible_time_window { mode = "OFF" }
+
+  target {
+    arn      = "arn:aws:scheduler:::aws-sdk:ec2:stopInstances"
+    role_arn = "arn:aws:iam::412296094200:role/ec2-scheduler-role"
+
+    input = jsonencode({
+      InstanceIds = [aws_instance.train.id]
+    })
   }
 }

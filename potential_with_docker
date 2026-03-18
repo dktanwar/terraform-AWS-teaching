@@ -1,0 +1,196 @@
+############################################
+# AWS EventBridge Scheduler - EC2 + Docker
+# Timezone: Europe/Zurich
+############################################
+
+############################################
+# START EC2 - Weekdays (08:30)
+############################################
+resource "aws_scheduler_schedule" "start_ec2_weekdays" {
+  name = "start-ec2-weekdays-0830"
+
+  schedule_expression          = "cron(30 8 ? * MON-FRI *)"
+  schedule_expression_timezone = "Europe/Zurich"
+
+  flexible_time_window { mode = "OFF" }
+
+  target {
+    arn      = "arn:aws:scheduler:::aws-sdk:ec2:startInstances"
+    role_arn = "arn:aws:iam::412296094200:role/ec2-scheduler-role"
+
+    input = jsonencode({
+      InstanceIds = [aws_instance.train.id]
+    })
+  }
+}
+
+############################################
+# START EC2 - Saturday (08:00)
+############################################
+resource "aws_scheduler_schedule" "start_ec2_sat" {
+  name = "start-ec2-sat-0800"
+
+  schedule_expression          = "cron(0 8 ? * SAT *)"
+  schedule_expression_timezone = "Europe/Zurich"
+
+  flexible_time_window { mode = "OFF" }
+
+  target {
+    arn      = "arn:aws:scheduler:::aws-sdk:ec2:startInstances"
+    role_arn = "arn:aws:iam::412296094200:role/ec2-scheduler-role"
+
+    input = jsonencode({
+      InstanceIds = [aws_instance.train.id]
+    })
+  }
+}
+
+############################################
+# DOCKER START - Weekdays (08:35)
+############################################
+resource "aws_scheduler_schedule" "docker_start_weekdays" {
+  name = "docker-start-weekdays-0835"
+
+  schedule_expression          = "cron(35 8 ? * MON-FRI *)"
+  schedule_expression_timezone = "Europe/Zurich"
+
+  flexible_time_window { mode = "OFF" }
+
+  target {
+    arn      = "arn:aws:scheduler:::aws-sdk:ssm:sendCommand"
+    role_arn = "arn:aws:iam::412296094200:role/ec2-scheduler-role"
+
+    input = jsonencode({
+      DocumentName = "AWS-RunShellScript",
+      InstanceIds  = [aws_instance.train.id],
+      Parameters = {
+        commands = [
+          "docker ps -aq | xargs -r docker start"
+        ]
+      }
+    })
+  }
+}
+
+############################################
+# DOCKER START - Saturday (08:05)
+############################################
+resource "aws_scheduler_schedule" "docker_start_sat" {
+  name = "docker-start-sat-0805"
+
+  schedule_expression          = "cron(5 8 ? * SAT *)"
+  schedule_expression_timezone = "Europe/Zurich"
+
+  flexible_time_window { mode = "OFF" }
+
+  target {
+    arn      = "arn:aws:scheduler:::aws-sdk:ssm:sendCommand"
+    role_arn = "arn:aws:iam::412296094200:role/ec2-scheduler-role"
+
+    input = jsonencode({
+      DocumentName = "AWS-RunShellScript",
+      InstanceIds  = [aws_instance.train.id],
+      Parameters = {
+        commands = [
+          "docker ps -aq | xargs -r docker start"
+        ]
+      }
+    })
+  }
+}
+
+############################################
+# DOCKER STOP - Weekdays (18:50)
+############################################
+resource "aws_scheduler_schedule" "docker_stop_weekdays" {
+  name = "docker-stop-weekdays-1850"
+
+  schedule_expression          = "cron(50 18 ? * MON-FRI *)"
+  schedule_expression_timezone = "Europe/Zurich"
+
+  flexible_time_window { mode = "OFF" }
+
+  target {
+    arn      = "arn:aws:scheduler:::aws-sdk:ssm:sendCommand"
+    role_arn = "arn:aws:iam::412296094200:role/ec2-scheduler-role"
+
+    input = jsonencode({
+      DocumentName = "AWS-RunShellScript",
+      InstanceIds  = [aws_instance.train.id],
+      Parameters = {
+        commands = [
+          "docker ps -aq | xargs -r docker stop"
+        ]
+      }
+    })
+  }
+}
+
+############################################
+# DOCKER STOP - Saturday (09:50)
+############################################
+resource "aws_scheduler_schedule" "docker_stop_sat" {
+  name = "docker-stop-sat-0950"
+
+  schedule_expression          = "cron(50 9 ? * SAT *)"
+  schedule_expression_timezone = "Europe/Zurich"
+
+  flexible_time_window { mode = "OFF" }
+
+  target {
+    arn      = "arn:aws:scheduler:::aws-sdk:ssm:sendCommand"
+    role_arn = "arn:aws:iam::412296094200:role/ec2-scheduler-role"
+
+    input = jsonencode({
+      DocumentName = "AWS-RunShellScript",
+      InstanceIds  = [aws_instance.train.id],
+      Parameters = {
+        commands = [
+          "docker ps -aq | xargs -r docker stop"
+        ]
+      }
+    })
+  }
+}
+
+############################################
+# STOP EC2 - Weekdays (19:00)
+############################################
+resource "aws_scheduler_schedule" "stop_ec2_weekdays" {
+  name = "stop-ec2-weekdays-1900"
+
+  schedule_expression          = "cron(0 19 ? * MON-FRI *)"
+  schedule_expression_timezone = "Europe/Zurich"
+
+  flexible_time_window { mode = "OFF" }
+
+  target {
+    arn      = "arn:aws:scheduler:::aws-sdk:ec2:stopInstances"
+    role_arn = "arn:aws:iam::412296094200:role/ec2-scheduler-role"
+
+    input = jsonencode({
+      InstanceIds = [aws_instance.train.id]
+    })
+  }
+}
+
+############################################
+# STOP EC2 - Saturday (10:00)
+############################################
+resource "aws_scheduler_schedule" "stop_ec2_sat" {
+  name = "stop-ec2-sat-1000"
+
+  schedule_expression          = "cron(0 10 ? * SAT *)"
+  schedule_expression_timezone = "Europe/Zurich"
+
+  flexible_time_window { mode = "OFF" }
+
+  target {
+    arn      = "arn:aws:scheduler:::aws-sdk:ec2:stopInstances"
+    role_arn = "arn:aws:iam::412296094200:role/ec2-scheduler-role"
+
+    input = jsonencode({
+      InstanceIds = [aws_instance.train.id]
+    })
+  }
+}
