@@ -4,12 +4,12 @@
 ############################################
 
 ############################################
-# START EC2 - Weekdays (08:30)
+# START EC2 - Weekdays (08:00)
 ############################################
 resource "aws_scheduler_schedule" "start_ec2_weekdays" {
-  name = "start-ec2-weekdays-0830"
+  name = "start-ec2-weekdays-0800"
 
-  schedule_expression          = "cron(30 8 ? * MON-FRI *)"
+  schedule_expression          = "cron(00 8 ? * MON-FRI *)"
   schedule_expression_timezone = "Europe/Zurich"
 
   flexible_time_window { mode = "OFF" }
@@ -73,7 +73,7 @@ resource "aws_scheduler_schedule" "stop_ec2_weekdays" {
 resource "aws_scheduler_schedule" "stop_ec2_sat" {
   name = "stop-ec2-sat-1000"
 
-  schedule_expression          = "cron(0 10 ? * SAT *)"
+  schedule_expression          = "cron(0 12 ? * SAT *)"
   schedule_expression_timezone = "Europe/Zurich"
 
   flexible_time_window { mode = "OFF" }
